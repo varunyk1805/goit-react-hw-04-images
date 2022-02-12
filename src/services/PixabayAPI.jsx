@@ -3,13 +3,13 @@ import axios from 'axios';
 const KEY = '24701819-0d7586ce1f39ad56fcdaf1d5e';
 const IMAGE_TYPE = 'image_type';
 const ORIENTATION = 'horizontal';
-const PER_PAGE = 12;
+const PER_PAGE = 8;
 
-const PixabayAPI = query => {
+const PixabayAPI = (query, page) => {
     
     const params = {
         q: query,
-        page: 1,
+        page: page,
         key: KEY,
         image_type: IMAGE_TYPE,
         orientation: ORIENTATION,

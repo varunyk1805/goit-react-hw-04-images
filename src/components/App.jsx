@@ -1,6 +1,8 @@
 import { Component } from 'react';
 import Searchbar from './Searchbar';
 import ImageGallery from './ImageGallery';
+import s from './App.module.css';
+import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 
 export default class App extends Component {
 
@@ -17,14 +19,14 @@ export default class App extends Component {
         const { handleSubmit } = this;
         
         return (
-            <>
+            <div className={s.app}>
                 <Searchbar
                     onSubmit={handleSubmit}
                 />
                 <ImageGallery 
                     query={query}
                 />
-            </>
+            </div>
         );
     };
 };
