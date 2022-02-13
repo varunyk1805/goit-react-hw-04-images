@@ -1,22 +1,34 @@
-import { Component } from 'react';
+import PropTypes from 'prop-types';
 import s from './ImageGalleryItem.module.css';
 
-export default class ImageGalleryItem extends Component {
+const ImageGalleryItem = ({images, query, onClick}) => {
+    return (
+        <>
+            {images.map(image => {
+                const { id, webformatURL } = image;
+                return (
+                    <li
+                        key={id}
+                        className={s.galleryItem}
+                    >
+                        <img
+                            src={webformatURL}
+                            id={id}
+                            className={s.galleryImage}
+                            alt={query}
+                            onClick={onClick}
+                        />
+                    </li>
+                );
+            })}
+        </>
+    );
+};
 
-    render() {
-        const { images, query } = this.props;
+ImageGalleryItem.propTypes = {
+    images: PropTypes.array.isRequired,
+    alt: PropTypes.string.isRequired,
+    onClick: PropTypes.func.isRequired,
+};
 
-        return (
-            <>
-                {images.map(image => {
-                    const { id, webformatURL } = image;
-                    return (
-                        <li key={id} className={s.galleryItem}>
-                            <img src={webformatURL} className={s.galleryImage} alt={query} />
-                        </li>
-                    )
-                })}
-            </>
-        )
-    }
-}
+export default ImageGalleryItem;

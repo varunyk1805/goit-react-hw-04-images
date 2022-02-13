@@ -11,6 +11,8 @@
   margin-right: auto;
 }
 
-.error {
+.message {
   margin: 0 auto;
+  font-size: 24px;
+  font-weight: 700;
 }

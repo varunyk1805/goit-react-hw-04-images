@@ -1,20 +1,29 @@
-import { Component } from 'react';
+import PropTypes from 'prop-types';
 import s from './Button.module.css';
 
-export default class Button extends Component {
+const Button = ({onClick, page}) => {
 
-    handlleClick = () => {
-        const { onClick, page } = this.props;
+    const handlleClick = () => {
         onClick(page + 1);
-    }
+    };
 
-    render() {
-        const { handlleClick } = this;
+    return (
+        <div
+            className={s.loadMore}>
+            <button
+                type='button'
+                className={s.button}
+                onClick={handlleClick}
+            >
+                Load more
+            </button>
+        </div>
+    );
+};
 
-        return (
-            <div className={s.loadMore}>
-                <button type='button' className={s.button} onClick={handlleClick}>Load more...</button>
-            </div>
-        )
-    }
-}
+Button.propTypes = {
+    onClick: PropTypes.func.isRequired,
+    page: PropTypes.number.isRequired,
+};
+
+export default Button;
