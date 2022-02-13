@@ -1,12 +1,12 @@
 import { Component } from 'react';
 import PropTypes from 'prop-types';
-import PixabayAPI from 'services/PixabayAPI';
+import PixabayAPI from '../../services/PixabayAPI';
 import ImageGalleryItem from './ImageGalleryItem';
-import Loader from 'components/Loader';
-import Modal from 'components/Modal';
+import Loader from '../Loader';
+import Modal from '../Modal';
 
 import s from './ImageGallery.module.css';
-import Button from 'components/Button';
+import Button from '../Button';
 
 const STATUS = {
   IDLE: 'idle',

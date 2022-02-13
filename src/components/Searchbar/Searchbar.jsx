@@ -1,6 +1,6 @@
 import { Component } from 'react';
 import PropTypes from 'prop-types';
-import Search from 'components/Icons';
+import Search from '../../components/Icons';
 import s from './Searchbar.module.css';
 
 export default class Searchbar extends Component {
