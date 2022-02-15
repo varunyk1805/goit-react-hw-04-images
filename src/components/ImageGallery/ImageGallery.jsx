@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import PixabayAPI from '../../services/PixabayAPI';
 import ImageGalleryItem from './ImageGalleryItem';
@@ -15,80 +15,81 @@ const STATUS = {
   REJECTED: 'rejected',
 };
 
-export default class ImageGallery extends Component {
+const ImageGallery = ({ queryValue }) => {
+    const [query, setQuery] = useState('');
+    const [page, setPage] = useState(1);
+    const [images, setImages] = useState([]);
+    const [totalPages, setTotalPages] = useState(0);
+    const [error, setError] = useState(null);
+    const [status, setStatus] = useState(STATUS.IDLE);
+    const [isModal, setIsModal] = useState(false);
+    const [idImage, setIdImages] = useState('');
 
-    state = {
-        query: '',
-        page: 1,
-        images: [],
-        totalPages: 0,
-        error: null,
-        status: STATUS.IDLE,
-        isModal: false,
-        idImage: '',
-    };
-
-    componentDidUpdate(prevProps, prevState) {
-        const prevQuery = prevProps.query;
-        const nextQuery = this.props.query;
-        const prevPage  = prevState.page;
-        const nextPage = this.state.page;
-        const prevImages = prevState.images;
-        const prevQueryEdited = prevQuery.replace(/\s+/g, ' ').trim().toLowerCase();
-        const nextQueryEdited = nextQuery.replace(/\s+/g, ' ').trim().toLowerCase();
-        
-        if (prevQueryEdited !== nextQueryEdited) {
-            const startPage = 1;
-            this.setState({ query: nextQuery, page: startPage, images: [], status: STATUS.PENDING });
-
-            PixabayAPI(nextQuery, startPage)
+    useEffect(() => {
+        if (query !== queryValue) {          
+            setQuery(queryValue);
+            setImages([]);
+            setPage(1);
+            setStatus(STATUS.PENDING);
+            
+            PixabayAPI(queryValue, 1)
                 .then(data => {
                     const { images, totalPages } = data;
-                    this.setState({ images, totalPages, status: STATUS.RESOLVED });
+             
+                    setImages(images);
+                    setTotalPages(totalPages);
+                    setStatus(STATUS.RESOLVED);
                 })
-                .catch(error => this.setState({ error, totalPages: 0, status: STATUS.REJECTED }))
+                .catch(error => {
+                    setError(error);
+                    setTotalPages(0);
+                    setStatus(STATUS.REJECTED);
+                })
+            return;
         };
 
-        if (prevPage !== nextPage && nextPage !== 1) {
-            this.setState({ page: nextPage, status: STATUS.PENDING });
-            
-            PixabayAPI(nextQuery, nextPage)
+        if (page !== 1) {
+            setPage(page);
+            setStatus(STATUS.PENDING);
+                
+            PixabayAPI(query, page)
                 .then(data => {
                     const { images } = data;
-                    this.setState({ images: [...prevImages, ...images], status: STATUS.RESOLVED })
+                    setImages(prev => [...prev, ...images]);
+                    setStatus(STATUS.RESOLVED);
                 })
-            .catch(error => this.setState({error, status: STATUS.REJECTED}))
+                .catch(error => {
+                    setError(error);
+                    setStatus(STATUS.REJECTED);
+                });
+            return;
         };
+
+    }, [query, queryValue, page])
+
+    const handlleLoadMore = page => {
+        setPage(page);
     };
 
-    handlleLoadMore = page => {
-        this.setState({ page });
+    const toggleModal = () => {
+        setIsModal(!isModal);
     };
 
-    toggleModal = () => {
-        const { isModal } = this.state;
-        this.setState({ isModal: !isModal });
-    };
-
-    findID = event => {
+    const findID = event => {
         const { id } = event.target;
-        this.setState({ idImage: +id });
-        this.toggleModal();
+        setIdImages(+id);
+        toggleModal();
     };
     
-    findImagebyID = () => {
-        const { images, idImage } = this.state;
+    const findedImage = (() => {
         if (idImage) {
             return images.find(image => image.id === idImage);
         };
-    };
+    })();
 
-    render() {
-        const { images, query, page, totalPages, status, error, isModal } = this.state;
-        const { handlleLoadMore, toggleModal, findID } = this;
-        const findedImage = this.findImagebyID();
+    switch (status) {
 
-        if (status === 'idle') {
+        case 'idle':
             return (
                 <span
                     className={s.message}
@@ -96,25 +97,8 @@ export default class ImageGallery extends Component {
                     Enter an image search query
                 </span>
             );
-        };
-
-        if (status === 'pending') {
-            return (
-                <>
-                    <ul
-                        className={s.gallery}
-                    >
-                        <ImageGalleryItem
-                            images={images}
-                            alt={query} 
-                            />
-                    </ul>
-                    <Loader />
-                </>
-            );
-        };
-
-        if (status === 'resolved') {
+                    
+        case 'pending':
             return (
                 <>
                     <ul
@@ -123,21 +107,36 @@ export default class ImageGallery extends Component {
                         <ImageGalleryItem
                             images={images}
                             alt={query}
-                            onClick={findID} 
+                        />
+                    </ul>
+                    <Loader />
+                </>
+            );
+        
+        case 'resolved':
+            return (
+                <>
+                    <ul
+                        className={s.gallery}
+                    >
+                        <ImageGalleryItem
+                            images={images}
+                            alt={query}
+                            onClick={findID}
                         />
                     </ul>
                     {totalPages !== page
                         ?
                         <Button
                             onClick={handlleLoadMore}
-                            page={page} 
+                            page={page}
                         />
                         :
                         <span
                             className={s.message}
                         >
                             Showing all images for "{query}"
-                        </span> 
+                        </span>
                     }
                     {isModal &&
                         <Modal
@@ -146,15 +145,14 @@ export default class ImageGallery extends Component {
                             <img
                                 src={findedImage.largeImageURL}
                                 className={s.galleryImage}
-                                alt={query} 
+                                alt={query}
                             />
                         </Modal>
                     }
                 </>
             );
-        };
-
-        if (status === 'rejected') {
+        
+        case 'rejected':
             return (
                 <span
                     className={s.message}
@@ -162,10 +160,14 @@ export default class ImageGallery extends Component {
                     {error.message}
                 </span>
             );
-        };
-    };
+        
+        default:
+            return;
+    };  
 };
 
 ImageGallery.propTypes = {
-    query: PropTypes.string.isRequired,
+    queryValue: PropTypes.string.isRequired,
 };
+
+export default ImageGallery;
